@@ -296,6 +296,14 @@ class BrokenLinkEmailsMiddlewareTest(TestCase):
         BrokenLinkEmailsMiddleware().process_response(self.req, self.resp)
         self.assertEqual(len(mail.outbox), 0)
 
+    @override_settings(APPEND_SLASH=True)
+    def test_404_error_reporting_append_slash_redirect(self):
+        absolute_uri = self.req.build_absolute_uri()
+        self.req.META['HTTP_REFERER'] = absolute_uri
+        self.req.path = self.req.path_info = absolute_uri + '/'
+        BrokenLinkEmailsMiddleware().process_response(self.req, self.resp)
+        self.assertEqual(len(mail.outbox), 0)
+
     @skipIf(six.PY3, "HTTP_REFERER is str type on Python 3")
     def test_404_error_nonascii_referrer(self):
         # Such referer strings should not happen, but anyway, if it happens,
